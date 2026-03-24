@@ -1,30 +1,33 @@
-import { HTMLByAttribute, HTMLByAttributeValue, HTMLByTag, HTMLByTagValueContains } from './fragment.js';
+import { extractAllInterviewDialogueSections, extractAllSurveyQuestions, extractAllTextualFragments, HTMLByAttribute, HTMLByAttributeValue, HTMLByTag, HTMLByTagValueContains } from './fragment.js';
 
-import { realm_addNewItem, realm_deleteDocument, realm_deleteFragment, realm_getAllAnnotations, realm_getAllAnnotations_fromSpecificFragment, realm_getAllDocuments, realm_getAllFloors, realm_getAllFragments, realm_getAllFragments_fromSpecificDoc, realm_getItem, realm_searchByTagList_AND, realm_searchByTagList_OR, realm_tagItem, realm_updateItem } from './realm_CRUD.js';
 import { parse, stringify } from 'flatted';
 
 // We have contrived the RPC API to mirror the StorageDriver interface, so we can use 
 // it as a type here for better type safety and autocompletion when calling storage methods.
 import StorageDriver from "../../../api-server/drivers/storageDriver.ts";
 
+
 /**
  * Our storage object becomes a simple proxy over the RPC API, allowing us to call methods as if they were 
  * local async functions,  while they are actually making network requests to the server.
  */
+console.log(`Initializing storage proxy with API URI: ${import.meta.env.VITE_API_URI}`);
 const storage = new Proxy({} as StorageDriver, {
-  get(_, method) {
+    get(_, method) {
 
-    return async (...args : any[]) => {
-      const { result } = await fetch("/rpc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method, args })
-      }).then(r => r.json());
+        return async (...args: any[]) => {
+            let apiuri = import.meta.env.VITE_API_URI;
+            let slash = apiuri.endsWith("/") ? "" : "/"
+            const { result } = await fetch(`${apiuri}${slash}rpc`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ method, args })
+            }).then(r => r.json());
 
-      return result;
-    };
+            return result;
+        };
 
-  }
+    }
 });
 
 
@@ -44,29 +47,29 @@ const storage = new Proxy({} as StorageDriver, {
  * @param {ObjectId} doc_id
  * @return {Object.<string, Array<String|BinaryData>>} 
  */
-export async function fragments_search_by_linked_document(doc_id){
+export async function fragments_search_by_linked_document(doc_id) {
     const rawFragList = await storage.getAllFragments_fromSpecificDoc(doc_id)
     let htmlfragList = []
     let binaryfragList = []
 
-    for (const frag of rawFragList){
-        if (frag.html != null){
+    for (const frag of rawFragList) {
+        if (frag.html != null) {
             htmlfragList.push(frag)
-        }else{
+        } else {
             binaryfragList.push(frag)
         }
     }
 
     const fragments = {
-        binaryDataFrags : binaryfragList,
-        htmlfragList : htmlfragList
+        binaryDataFrags: binaryfragList,
+        htmlfragList: htmlfragList
     }
 
     return fragments
 }
 
 //dont use this directly
-async function document_add_data(data, filepath, type, tags=[]) { 
+async function document_add_data(data, filepath, type, tags = []) {
 
     const filename = filepath.split("/").at(-1)
 
@@ -94,7 +97,7 @@ async function document_add_data(data, filepath, type, tags=[]) {
  * @param {Array<string>} [tags=[]]
  * @return {ObjectId} id
  */
-export async function document_add_html(html, filepath, type, tags=[]) {
+export async function document_add_html(html, filepath, type, tags = []) {
 
     const filename = filepath.split("/").at(-1)
 
@@ -123,12 +126,12 @@ export async function document_add_html(html, filepath, type, tags=[]) {
  * @param {Array<string>} [tags=[]]
  * @return {ObjectId} 
  */
-export async function fragment_add_html(html, docid, fragName="testFragment", type, coords = null, tags=[]) {
+export async function fragment_add_html(html, docid, fragName = "testFragment", type, coords = null, tags = []) {
 
     const newfrag = {
         name: fragName,
         docid: docid,
-        html: html  ,
+        html: html,
         data: null,
         type: type,
         coords: coords,
@@ -152,7 +155,7 @@ export async function fragment_add_html(html, docid, fragName="testFragment", ty
  * @param {string} [fragName="testFragment"]
  * @return {ObjectId} 
  */
-export async function fragment_add_data(data, docid, fragName="testFragment", type, tags=[]) { 
+export async function fragment_add_data(data, docid, fragName = "testFragment", type, tags = []) {
 
     const newfrag = {
         name: fragName,
@@ -177,11 +180,11 @@ export async function fragment_add_data(data, docid, fragName="testFragment", ty
  * @param {ObjectId} id
  * @return {BinaryData|string} 
  */
-export async function fragment_find(id) { 
+export async function fragment_find(id) {
 
     const newfrag = await storage.getItem("fragments", id)
     return newfrag
-     
+
 }
 
 /**
@@ -192,7 +195,7 @@ export async function fragment_find(id) {
  * @param {ObjectId} id
  * @return {object} 
  */
-export async function document_find(id) { 
+export async function document_find(id) {
 
     const newDoc = await storage.getItem("documents", id)
     return newDoc
@@ -206,7 +209,7 @@ export async function document_find(id) {
  * @param {ObjectId} id
  * @return {object} 
  */
-export async function annotation_find(id) { 
+export async function annotation_find(id) {
 
     const newDoc = await storage.getItem("annotations", id)
     return newDoc
@@ -223,7 +226,7 @@ export async function annotation_find(id) {
  * @param {ObjectId} id
  * @return {DeleteResult} 
  */
-export async function document_delete(id){return await storage.deleteItem("documents", id)}
+export async function document_delete(id) { return await storage.deleteItem("documents", id) }
 
 
 /**
@@ -233,7 +236,7 @@ export async function document_delete(id){return await storage.deleteItem("docum
  * @param {ObjectId} id
  * @return {DeleteResult} 
  */
-export async function fragment_delete(id){return await storage.deleteItem("fragments", id)}
+export async function fragment_delete(id) { return await storage.deleteItem("fragments", id) }
 
 
 /**
@@ -244,13 +247,13 @@ export async function fragment_delete(id){return await storage.deleteItem("fragm
  * @param {String} attribute
  * @return {Array<String>} 
  */
-export async function document_searchContentsFor_HTMLattribute(docid, attribute){
+export async function document_searchContentsFor_HTMLattribute(docid, attribute) {
 
     let matches = []
     const doc = await document_find(docid)
-    if (doc.html!=null){
+    if (doc.html != null) {
         matches = await HTMLByAttribute(doc.html, attribute)
-    }else{
+    } else {
         console.error("File has no HTML content: " + docid)
     }
 
@@ -267,19 +270,19 @@ export async function document_searchContentsFor_HTMLattribute(docid, attribute)
  * @param {String} value
  * @return {Array<String>} 
  */
-export async function document_searchContentsFor_HTMLattributeValue(docid, attribute, value){
+export async function document_searchContentsFor_HTMLattributeValue(docid, attribute, value) {
 
     let matches = []
     const doc = await document_find(docid)
 
-    if (doc.html!=null){
+    if (doc.html != null) {
         matches = await HTMLByAttributeValue(doc, attribute, value)
-    }else{
+    } else {
         console.error("File has no HTML content: " + docid)
     }
 
     return matches
-    
+
 }
 
 /**
@@ -296,17 +299,17 @@ export async function document_searchContentsFor_HTMLattributeValue(docid, attri
  * @param {string} [t_class=null]
  * @return {*} 
  */
-export async function document_searchContentsFor_HTMLTagValue(docid, tag, value=null, t_class=null){
+export async function document_searchContentsFor_HTMLTagValue(docid, tag, value = null, t_class = null) {
     let matches = []
     const doc = await document_find(docid)
 
-    if (doc.html!=null){
-        if (value != null){
+    if (doc.html != null) {
+        if (value != null) {
             matches = await HTMLByTagValueContains(doc, tag, value, t_class)
-        }else{
-            matches = await HTMLByTag(doc,tag,t_class)
+        } else {
+            matches = await HTMLByTag(doc, tag, t_class)
         }
-    }else{
+    } else {
         console.error("File has no HTML content: " + docid)
     }
 
@@ -322,7 +325,10 @@ export async function document_searchContentsFor_HTMLTagValue(docid, tag, value=
  * @param {string} tag
  * @return {number} 
  */
-export async function document_addTag(docid, tag){const res = await realm_tagItem("documents", docid, tag); return res}
+export async function document_addTag(docid, tag) {
+    const res = await storage.tagItem("documents", docid, tag);
+    return res;
+}
 
 
 /**
@@ -333,7 +339,10 @@ export async function document_addTag(docid, tag){const res = await realm_tagIte
  * @param {string} tag
  * @return {number} 
  */
-export async function fragment_addTag(fragid, tag){const res = await realm_tagItem("fragments", fragid, tag); return res}
+export async function fragment_addTag(fragid, tag) {
+    const res = await storage.tagItem("fragments", fragid, tag);
+    return res;
+}
 
 
 /**
@@ -344,7 +353,10 @@ export async function fragment_addTag(fragid, tag){const res = await realm_tagIt
  * @param {string} tag
  * @return {number} 
  */
-export async function annotation_addTag(fragid, tag){const res = await realm_tagItem("annotations", fragid, tag); return res}
+export async function annotation_addTag(fragid, tag) {
+    const res = await storage.tagItem("annotations", fragid, tag);
+    return res;
+}
 
 
 /**
@@ -354,8 +366,8 @@ export async function annotation_addTag(fragid, tag){const res = await realm_tag
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function document_searchByTagsList_OR(tagList){
-    const docs = await realm_searchByTagList_OR("documents", tagList)
+export async function document_searchByTagsList_OR(tagList) {
+    const docs = await storage.searchByTagList_OR("documents", tagList)
     return docs
 }
 
@@ -366,8 +378,8 @@ export async function document_searchByTagsList_OR(tagList){
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function documents_searchByTagsList_AND(tagList){
-    const docs = await realm_searchByTagList_AND("documents", tagList)
+export async function documents_searchByTagsList_AND(tagList) {
+    const docs = await storage.searchByTagList_AND("documents", tagList)
     return docs
 }
 
@@ -378,8 +390,8 @@ export async function documents_searchByTagsList_AND(tagList){
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function fragment_searchByTagsList_OR(tagList){
-    const frags = await realm_searchByTagList_OR("fragments", tagList)
+export async function fragment_searchByTagsList_OR(tagList) {
+    const frags = await storage.searchByTagList_OR("fragments", tagList)
     return frags
 }
 
@@ -391,8 +403,8 @@ export async function fragment_searchByTagsList_OR(tagList){
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function fragment_searchByTagsList_AND(tagList){
-    const frags = await realm_searchByTagList_AND("fragments", tagList)
+export async function fragment_searchByTagsList_AND(tagList) {
+    const frags = await storage.searchByTagList_AND("fragments", tagList)
     return frags
 }
 
@@ -403,8 +415,8 @@ export async function fragment_searchByTagsList_AND(tagList){
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function annotation_searchByTagList_OR(tagList){
-    const frags = await realm_searchByTagList_OR("annotations", tagList)
+export async function annotation_searchByTagList_OR(tagList) {
+    const frags = await storage.searchByTagList_OR("annotations", tagList)
     return frags
 }
 
@@ -416,8 +428,8 @@ export async function annotation_searchByTagList_OR(tagList){
  * @param {Array<string>} tagList
  * @return {Array<object>} docs
  */
-export async function annotation_searchByTagList_AND(tagList){
-    const frags = await realm_searchByTagList_AND("annotations", tagList)
+export async function annotation_searchByTagList_AND(tagList) {
+    const frags = await storage.searchByTagList_AND("annotations", tagList)
     return frags
 }
 
@@ -433,7 +445,7 @@ export async function annotation_searchByTagList_AND(tagList){
  * @param {string} [annotationName="New annotation"]
  * @return {ObjectId} insertedID 
  */
-export async function annotation_create(htmlContent, fragmentIDList, color, tags=[], annotationName="New annotation"){
+export async function annotation_create(htmlContent, fragmentIDList, color, tags = [], annotationName = "New annotation") {
     const newAnnot = {
         name: annotationName,
         content: htmlContent,
@@ -442,7 +454,7 @@ export async function annotation_create(htmlContent, fragmentIDList, color, tags
         tags: tags,
     }
 
-    const insertedId = await realm_addNewItem("annotations", newAnnot)
+    const insertedId = await storage.addNewItem("annotations", newAnnot)
     return insertedId
 }
 
@@ -454,8 +466,8 @@ export async function annotation_create(htmlContent, fragmentIDList, color, tags
  * @param {ObjectId} fragmentID
  * @return {Array<object>} 
  */
-export async function annotation_search_by_linked_fragmentID(fragmentID){
-    const annotations = await realm_getAllAnnotations_fromSpecificFragment(fragmentID)
+export async function annotation_search_by_linked_fragmentID(fragmentID) {
+    const annotations = await storage.getAllAnnotations_fromSpecificFragment(fragmentID)
     return annotations
 }
 
@@ -467,7 +479,7 @@ export async function annotation_search_by_linked_fragmentID(fragmentID){
  * @param {string} html
  * @return {Array<string>} 
  */
-export function HTML_2_Textual_Fragments(html){
+export function HTML_2_Textual_Fragments(html) {
     return extractAllTextualFragments(html)
 }
 
@@ -480,7 +492,7 @@ export function HTML_2_Textual_Fragments(html){
  * @param {string} html
  * @return {Array<string>} 
  */
-export function HTML_2_Dialogue_List(html){
+export function HTML_2_Dialogue_List(html) {
     return extractAllInterviewDialogueSections(html)
 }
 
@@ -492,7 +504,7 @@ export function HTML_2_Dialogue_List(html){
  * @param {string} html
  * @return {Array<string>} 
  */
-export function HTML_2_QnA_List(html){
+export function HTML_2_QnA_List(html) {
     return extractAllSurveyQuestions(html)
 }
 
@@ -507,19 +519,19 @@ export function HTML_2_QnA_List(html){
  * @param {string} questionName
  * @return {Array<string>} questionList [HTML String]
  */
-export async function survey_AnswersToASpecificQuestion(doc_id, questionName){
+export async function survey_AnswersToASpecificQuestion(doc_id, questionName) {
     const doc = await document_find(doc_id)
 
     let questionList = []
 
-    if (doc.type != "survey"){
+    if (doc.type != "survey") {
         console.error("Wrong doc type! It must be a survey.")
-    }else{
+    } else {
         const html = await doc.html
 
-        const qnas = await HTMLByTagValueContains(html,"li",questionName,"qna" )
+        const qnas = await HTMLByTagValueContains(html, "li", questionName, "qna")
 
-        for (const qna of qnas){
+        for (const qna of qnas) {
             const a = await HTMLByTag(qna, "p", "answer")
             questionList.push(a[0])
         }
@@ -540,19 +552,19 @@ export async function survey_AnswersToASpecificQuestion(doc_id, questionName){
  * @param {string} speakerName
  * @return {Array<string>} questionList [HTML String]
  */
-export async function transcript_DialogueFromASpecificSpeaker(doc_id, speakerName){
+export async function transcript_DialogueFromASpecificSpeaker(doc_id, speakerName) {
     const doc = await document_find(doc_id)
 
     let dialogueList = []
 
-    if (doc.type != "transcript"){
+    if (doc.type != "transcript") {
         console.error("Wrong doc type! It must be a transcript. : " + doc.type)
-    }else{
+    } else {
         const html = await doc.html
 
-        const sections = await HTMLByTagValueContains(html,"li",speakerName,"dialogue")
+        const sections = await HTMLByTagValueContains(html, "li", speakerName, "dialogue")
 
-        for (const sect of sections){
+        for (const sect of sections) {
             const dialogue = await HTMLByTag(sect, "p", "speech")
             dialogueList.push(dialogue[0])
         }
@@ -572,7 +584,7 @@ export async function transcript_DialogueFromASpecificSpeaker(doc_id, speakerNam
  * @param {string} name
  * @return {ObjectId} insertedID 
  */
-export async function floor_save(floor_object, name){
+export async function floor_save(floor_object, name) {
 
     //removes any circular references that stop JSON parsing from working when saving the floor.
     let flat_floor = stringify(floor_object)
@@ -582,7 +594,7 @@ export async function floor_save(floor_object, name){
         name: name
     }
 
-    const id = await realm_addNewItem('virtualFloors', realmObj)
+    const id = await storage.addNewItem('virtualFloors', realmObj)
 
     return id
 }
@@ -596,7 +608,7 @@ export async function floor_save(floor_object, name){
  * @param {string} name
  * @return {ObjectId} insertedID 
  */
-export async function floor_update(floor_object, floor_id, name){
+export async function floor_update(floor_object, floor_id, name) {
 
     //removes any circular references that stop JSON parsing from working when saving the floor.
     let flat_floor = stringify(floor_object)
@@ -606,7 +618,7 @@ export async function floor_update(floor_object, floor_id, name){
         name: name
     }
 
-    const id = await realm_updateItem('virtualFloors', floor_id, realmObj)
+    const id = await storage.updateItem('virtualFloors', floor_id, realmObj)
 
     return id
 }
@@ -618,8 +630,8 @@ export async function floor_update(floor_object, floor_id, name){
  * @export
  * @return {Array<object>} 
  */
-export async function documents_findAll(){
-    const docs = await realm_getAllDocuments()
+export async function documents_findAll() {
+    const docs = await storage.getAllDocuments()
     return docs
 }
 
@@ -630,8 +642,8 @@ export async function documents_findAll(){
  * @export
  * @return {Array<object>} 
  */
-export async function annotations_findAll(){
-    const annots = await realm_getAllAnnotations()
+export async function annotations_findAll() {
+    const annots = await storage.getAllAnnotations()
     return annots
 }
 
@@ -642,8 +654,8 @@ export async function annotations_findAll(){
  * @export
  * @return {Array<object>} 
  */
-export async function fragments_findAll(){
-    const fragments = await realm_getAllFragments()
+export async function fragments_findAll() {
+    const fragments = await storage.getAllFragments()
     return fragments
 }
 
@@ -654,11 +666,11 @@ export async function fragments_findAll(){
  * @export
  * @return {Array<object>} 
  */
-export async function floors_findAll(){
-    const vfs = await realm_getAllFloors()
+export async function floors_findAll() {
+    const vfs = await storage.getAllFloors()
 
     //undo flatten serialisation
-    for (const vf of vfs){
+    for (const vf of vfs) {
         let flat_floor = parse(vf.floor)
         vf.floor = flat_floor
     }

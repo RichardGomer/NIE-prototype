@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import FragmentSelector from '../components/FragmentSelector'
 import { useAtom, atom } from 'jotai'
-import { RESET, atomWithStorage } from 'jotai/utils'
 import { a2c_atom, annotations, f2c_atom, fragments, virtualFloors } from '../state'
 
 import { FabricJSCanvas, useFabricJSEditor } from 'fabricjs-react'
-import parse from 'html-react-parser';
-import * as htmlToImage from 'html-to-image';
-import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image'
 import { Button, Card, CardBody, CardHeader, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Typography } from '@material-tailwind/react'
 import AnnotationCreator from '../components/AnnotationCreator'
-import { deleteAnnotation } from '../nieClient'
 import { floor_save, floor_update } from '../api/dataFacade'
 import { deleteIconSrc } from '../icons'
 

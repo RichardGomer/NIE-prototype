@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ItemList from "../components/ItemList"
 import HTMLViewer from '../components/HTMLViewer';
-import { document_find, documents_findAll } from "../api/react_api";
+import { document_find, documents_findAll } from "../api/dataFacade";
 import { ObjectId } from "bson";
 import { extractAllTextualFragments } from "../api/fragment";
 import TextualList from "../components/TextualList";

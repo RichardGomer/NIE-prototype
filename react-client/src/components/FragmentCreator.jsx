@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { document_find, fragment_add_html } from "../api/react_api";
+import { document_find, fragment_add_html } from "../api/dataFacade";
 import DOMPurify from "dompurify";
 import { Input, Option, Select } from "@material-tailwind/react";
 

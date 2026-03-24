@@ -3,11 +3,10 @@ import { useState, useEffect, useRef } from 'react'
 import { ObjectId } from 'bson';
 
 import '../App.css'
-//import { document_add } from './api/react_api';
 import FileUploader from '../components/FileUploader';
 import ItemList from '../components/ItemList';
 import HTMLViewer from '../components/HTMLViewer';
-import { document_find, documents_findAll } from '../api/react_api';
+import { document_find, documents_findAll } from '../api/dataFacade';
 
 function DocumentViewer(){
 

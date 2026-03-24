@@ -2,7 +2,7 @@ import { useAtom } from "jotai"
 import { documents, fragments } from "../state"
 import FragmentGrid from "../components/FragmentGrid"
 import { useEffect, useState } from "react"
-import { fragments_findAll } from "../api/react_api"
+import { fragments_findAll } from "../api/dataFacade"
 import { Option, Select, Typography } from '@material-tailwind/react';
 import FragmentEditorPanel from "../components/FragmentEditorPanel"
 

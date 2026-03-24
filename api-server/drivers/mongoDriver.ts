@@ -22,11 +22,16 @@ class MongoDriver implements StorageDriver {
   }
 
   public async getDb() {
+
+    const dbName = new URL(this.options.connectionString).pathname.replace(/((^\/+)|(\/+$))/g, "");
+    if (!dbName) throw new Error("Database name is not specified in MONGO_URI");
+
     if (!this.clientPromise) {
       this.clientPromise = MongoClient.connect(this.options.connectionString);
     }
+    
     const client = await this.clientPromise;
-    return client.db(this.options.dbName);
+    return client.db();
   }
 
   public async addNewItem(collectionName: string, item: any) {

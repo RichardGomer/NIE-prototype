@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useSyncExternalStore } from 'react';
-import { document_add_html, document_find } from '../api/react_api';
+import { document_add_html, document_find } from '../api/dataFacade';
 import { ObjectId } from 'bson';
 import { useAtom, useSetAtom } from 'jotai';
 import { documents } from '../state';

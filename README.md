@@ -5,23 +5,26 @@ The app is created using Vite + React. The dev build can be run with the followi
 ```bash
 npm run dev
 ```
+## API Server Instructions
+The API server is built using Express and TypeScript. It provides simple access to data stored in MongoDB. 
 
-
-You will need to create a .env file with the following keys, for the NIE mongoDB cluster:
-
+It can be started with the following command
+```bash
+npm run api
 ```
-    VITE_REALM_APP_KEY='xxxxxxxxx'  # Realm app ID
-    VITE_REALM_EMAIL='xxxxxxxx'     # Realm app username
-    VITE_REALM_PASS='xxxxxxxx'      # Realm user's password
-    VITE_REALM_DB='xxx'             # Database name within the mongo cluster
+This will start the server on port 3000, and it will be ready to accept RPC calls from the client.
+
+A .env file must be created, containing a `MONGO_URI` variable with the connection string for your MongoDB instance. For example:
+```
+MONGO_URI=mongodb://username:password@localhost:27017/nie-db
 ```
 
-env variables must be prefixed with VITE_ to work.They are queried with 
-```javascript
-const key = import.meta.env.KEYNAME
-// for example
-const realm_key = import.meta.env.VITE_REALM_APP_KEY
+## Start both
+To start both the client and the API server concurrently, you can use the following command from the react-client directory:
+```bash
+npm run dev:all
 ```
+
 
 ## Implementation Notes
 Fragments in the canvas are currently created by rendering HTML in an svg format. They currently do not scale properly within the fragment bounds, or implement any css styling within the html.

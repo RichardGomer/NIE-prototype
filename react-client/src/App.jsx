@@ -1,6 +1,5 @@
 
 import './App.css'
-//import { document_add } from './api/react_api';
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DocumentViewer from './views/DocumentViewer';
