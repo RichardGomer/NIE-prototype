@@ -11,7 +11,7 @@ env.config();
 async function main() {
 
     const app = express();
-    app.use(express.json());
+    app.use(express.json({ limit: "10mb" })); // increase the request size to allow for larger documents
 
     const uri = process.env.MONGO_URI;
     if (!uri) throw new Error("MONGO_URI is not set");
