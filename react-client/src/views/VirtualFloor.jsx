@@ -10,8 +10,8 @@ import * as htmlToImage from 'html-to-image';
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image'
 import { Button, Card, CardBody, CardHeader, Dialog, DialogBody, DialogFooter, DialogHeader, Input, Typography } from '@material-tailwind/react'
 import AnnotationCreator from '../components/AnnotationCreator'
-import { realm_deleteAnnotation } from '../api/realm_CRUD'
-import { floor_save, floor_update } from '../api/react_api'
+import { deleteAnnotation } from '../nieClient'
+import { floor_save, floor_update } from '../api/dataFacade'
 import { deleteIconSrc } from '../icons'
 
 function VirtualFloor({tab_index, changeTabName, savedName_initial, savedID_initial=null}){

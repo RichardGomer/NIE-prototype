@@ -10,7 +10,7 @@ import FragmentExtractorTextual from './views/FragmentExtractorTextual';
 import FragmentExtractorQuery from './views/FragmentExtractorQuery';
 import { annotations, documents, virtualFloors } from './state';
 import { useAtom } from 'jotai';
-import { annotations_findAll, documents_findAll, floors_findAll } from './api/react_api';
+import { annotations_findAll, documents_findAll, floors_findAll } from './api/dataFacade';
 import { useEffect } from 'react';
 import FragmentImage from './views/FragmentImage';
 

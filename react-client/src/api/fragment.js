@@ -1,5 +1,8 @@
 import { load } from "cheerio";
 
+/**
+ * Functions for extracting fragments of HTML based on various criteria, such as jQuery selectors, attributes, etc.
+ */
 
 export function query_jq(html, jqString){
     const $ = load(html, null, true)
