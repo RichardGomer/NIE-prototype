@@ -1,5 +1,6 @@
 import { MongoClient, ObjectId } from "mongodb";
 import StorageDriver from "./storageDriver.ts";
+import IDedObject from "./IDedObject.ts";
 
 
 interface MongoDriverOptions {
@@ -40,9 +41,24 @@ class MongoDriver implements StorageDriver {
     return result.insertedId.toString();
   }
 
-  public async updateItem(collectionName: string, id: string, newItem: any) {
+  public async updateItem(collectionName: string, id: string, newItem: IDedObject) {
     const db = await this.getDb();
-    const result = await db.collection(collectionName).updateOne({ _id: this.normalizeId(id) }, newItem);
+
+    console.log(`Updating item in collection ${collectionName} with id ${id} and new data:`, newItem);
+
+    // Never allow _id mutation
+    if(newItem._id) {
+      const { _id, ...rest } = newItem;
+    } else {
+      var rest = newItem;
+    }
+
+    const updateDoc = { $set: rest };
+
+    const result = await db
+      .collection(collectionName)
+      .updateOne({ _id: this.normalizeId(id) }, updateDoc);
+
     return result.modifiedCount;
   }
 

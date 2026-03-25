@@ -22,9 +22,12 @@ function VirtualFloor({tab_index, changeTabName, savedName_initial, savedID_init
     const [fragmentList, setFragmentList] = useAtom(fragments) 
     const [annotationList, setAnnotationList] = useAtom(annotations)
     const [virtualFloorList, setVirtualFloorList] = useAtom(virtualFloors) 
+    
     //f2c & a2c setup
-    const [f2c, setf2c] = useAtom(f2c_atom)
+    // TODO: These would be better as derived atoms from a global workspace atom that contains all the workspace data, including f2c and a2c for each tab. 
+    // Then we wouldn't have to do all this ref stuff to keep track of the current tab's f2c and a2c.
     const [a2c, seta2c] = useAtom(a2c_atom)
+    const [f2c, setf2c] = useAtom(f2c_atom) 
 
     const f2cRef = useRef()
     const a2cRef = useRef()
@@ -648,10 +651,41 @@ function VirtualFloor({tab_index, changeTabName, savedName_initial, savedID_init
     }
 
     
+    /**
+     * Updates the stored location metadata for a single moved/scaled canvas object.
+     *
+     * The method tries to match the provided `object.id` against:
+     * 1) fragment-to-canvas mappings (`f2c`) first, then
+     * 2) annotation-to-canvas mappings (`a2c`) if no fragment match is found.
+     *
+     * For a match, it recalculates `locationObj` (`height`, `width`, `posx`, `posy`)
+     * using either:
+     * - the object's current absolute canvas coordinates, or
+     * - an offset from `orig` (when provided), applied to the previously stored location.
+     *
+     * It uses `prev_f2c` / `prev_a2c` as override sources when passed; otherwise it falls
+     * back to `thisf2cRef.current` / `thisa2cRef.current`.
+     *
+     * @param {Object} object - The moved/scaled canvas object (expected to expose `id`, `left`, `top`, `getScaledWidth()`, `getScaledHeight()`).
+     * @param {Object} event - Fabric/interaction event containing `target.left` and `target.top` for offset calculations.
+     * @param {?Object} [orig=null] - Original object position snapshot used to compute relative movement (`orig.left`, `orig.top`).
+     * @param {?Array<Object>} [prev_f2c=null] - Optional prior fragment-location list to update instead of the current ref list.
+     * @param {?Array<Object>} [prev_a2c=null] - Optional prior annotation-location list to update instead of the current ref list.
+     * @returns {[Array<Object>, Array<Object>]} Tuple of updated `[f2c, a2c]` lists.  
+     * Returns empty arrays for lists not set during this call (e.g., if no match is found).
+     *
+     * @remarks
+     * - Matching uses UUID/id equality (string-normalized for f2c in current logic).
+     * - The selected list is updated in place before being returned.
+     */
     function updateSingleLocation(object, event, orig=null, prev_f2c=null, prev_a2c=null){
+
+        
         let newa2c = []
         let newf2c = []
         let list2use
+
+        console.log("Updating single object location", object)
 
         if (prev_f2c){
             list2use = prev_f2c
@@ -662,6 +696,7 @@ function VirtualFloor({tab_index, changeTabName, savedName_initial, savedID_init
         let found = false
         
         for (const f2loc of list2use){
+            console.log("checking f2c object with uuid " + f2loc.uuid + " against moved object with id " + object.id)
             if (f2loc.uuid.toString() == object.id.toString()){
                 found = true
                 console.log("moving fragment")
@@ -691,6 +726,9 @@ function VirtualFloor({tab_index, changeTabName, savedName_initial, savedID_init
         }
 
         if (!found){
+
+            console.log("object not found in f2c, checking a2c")
+
             if (prev_a2c){
                 list2use = prev_a2c
             }else{

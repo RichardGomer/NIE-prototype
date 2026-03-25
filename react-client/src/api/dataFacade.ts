@@ -575,6 +575,22 @@ export async function transcript_DialogueFromASpecificSpeaker(doc_id, speakerNam
 }
 
 
+function prepareFloorObject(floor_object, name) {
+    //removes any circular references that stop JSON parsing from working when saving the floor.
+    let flat_floor = stringify(floor_object)
+
+    console.log("Original floor object for saving:", floor_object);
+    console.log("Flattened floor object for saving:", flat_floor);
+
+    let flatFloor = {
+        floor: flat_floor,
+        name: name
+    }
+
+    return flatFloor;
+}
+
+
 /**
  * Saves a new virtual floor. Takes an object containing the a2c and f2c object for the new floor, and returns the ID of the new floor.
  * 
@@ -586,14 +602,7 @@ export async function transcript_DialogueFromASpecificSpeaker(doc_id, speakerNam
  */
 export async function floor_save(floor_object, name) {
 
-    //removes any circular references that stop JSON parsing from working when saving the floor.
-    let flat_floor = stringify(floor_object)
-
-    let realmObj = {
-        floor: flat_floor,
-        name: name
-    }
-
+    const realmObj = prepareFloorObject(floor_object, name)
     const id = await storage.addNewItem('virtualFloors', realmObj)
 
     return id
@@ -610,14 +619,7 @@ export async function floor_save(floor_object, name) {
  */
 export async function floor_update(floor_object, floor_id, name) {
 
-    //removes any circular references that stop JSON parsing from working when saving the floor.
-    let flat_floor = stringify(floor_object)
-
-    let realmObj = {
-        floor: flat_floor,
-        name: name
-    }
-
+    const realmObj = prepareFloorObject(floor_object, name)
     const id = await storage.updateItem('virtualFloors', floor_id, realmObj)
 
     return id
